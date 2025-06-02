@@ -1,0 +1,41 @@
+---
+- name: Join Kubernetes Worker Nodes to Cluster
+  hosts: worker
+  become: yes
+  vars:
+    join_command: >
+      kubeadm join 172.31.11.214:6443 --token 3ffix8.tnq7pvvw3m07e0ck
+      --discovery-token-ca-cert-hash sha256:aa536a5535dea2bb1cc7148a982799d6bf03a09595b3d2815519b04b3bd686ef
+  tasks:
+    - name: Install containerd
+      apt:
+        name: containerd
+        state: present
+        update_cache: yes
+
+    - name: Start and enable containerd
+      systemd:
+        name: containerd
+        state: started
+        enabled: yes
+
+    - name: Load br_netfilter kernel module
+      modprobe:
+        name: br_netfilter
+        state: present
+
+    - name: Ensure bridge-nf-call-iptables is set to 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        state: present
+        reload: yes
+
+    - name: Join the Kubernetes cluster
+      command: "{{ join_command }}"
+      register: join_result
+      ignore_errors: yes
+
+    - name: Debug join result
+      debug:
+        var: join_result

@@ -11,6 +11,7 @@ pipeline {
     stage('Docker Build & Push') {
       steps {
         sh 'docker build -t shebwell/myapp:latest .'
+        sh 'echo "$DOCKER_PASSWORD" | docker login -u "shebwell" --password-stdin'
         sh 'docker push shebwell/myapp:latest'
       }
     }

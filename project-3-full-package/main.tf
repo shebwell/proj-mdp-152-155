@@ -1,1 +1,0 @@
-## Terraform config content
